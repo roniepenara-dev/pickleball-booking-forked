@@ -1,0 +1,21 @@
+model Device {
+  id           String   @id @default(cuid())
+  deviceId     String
+  deviceName   String? 
+  appVersion   String? 
+  platform     String?
+  registeredAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@unique([deviceId, appVersion])
+}
+
+model Recording {
+  id        String   @id @default(cuid())
+  emails    String?
+  status    String   @default("pending") // pending, uploading, completed, failed
+  filePath  String  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deviceId  String
+}

@@ -12,6 +12,10 @@ import {
   ClientBookingStatusEmail,
   ClientBookingStatusEmailProps,
 } from "@/lib/nodemailer/email/client-booking-status.email"
+import {
+  GameRecordingEmail,
+  GameRecordingEmailProps,
+} from "@/lib/nodemailer/email/game-recording.email"
 
 export async function sendBookingConfirmationEmail({ booking }: BookingConfirmationEmailProps) {
   if (!booking.emailAddress) return null
@@ -44,6 +48,16 @@ export async function sendClientBookingStatusEmail({ booking }: ClientBookingSta
   await sendEmail({
     to: booking.emailAddress,
     subject: `Booking Action for [${booking.code}]`,
+    html,
+  })
+}
+
+export async function sendGameRecordingEmail({ recipients, videoUrl }: GameRecordingEmailProps) {
+  if (!recipients || !videoUrl) return null
+  const html = await render(<GameRecordingEmail recipients={recipients} videoUrl={videoUrl} />)
+  await sendEmail({
+    to: recipients,
+    subject: "🎥 Your Game Recording",
     html,
   })
 }
