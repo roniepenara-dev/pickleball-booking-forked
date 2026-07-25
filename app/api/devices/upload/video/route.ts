@@ -3,6 +3,10 @@ import { withRateLimit } from "@/lib/server/rate-limiter"
 import { prisma } from "@/lib/prisma"
 import { storageService } from "@/lib/server/services/storage.service"
 import { sendGameRecordingEmail } from "@/lib/nodemailer/sender/sender.email"
+import fs from "fs"
+import path from "path"
+import { watermarkService } from "@/lib/server/services/watermark.service"
+import os from "os"
 
 export const POST = withRateLimit(async (request: NextRequest) => {
   try {
@@ -22,7 +26,19 @@ export const POST = withRateLimit(async (request: NextRequest) => {
     if (!deviceId || !file)
       return NextResponse.json({ error: "Device ID and file are required." }, { status: 400 })
 
-    const uploaded = await storageService.upload(file, deviceId) // Upload to RustFS bucket
+    // Save uploaded file to /tmp
+    // const inputPath = path.join("/tmp", file.name)
+    const inputPath = path.join(process.cwd(), file.name)
+    fs.writeFileSync(inputPath, Buffer.from(await file.arrayBuffer()))
+
+    // Apply watermark
+    // const outputPath = path.join("/tmp", `wm-${file.name}`)
+
+    const outputPath = path.join(process.cwd(), `wm-${file.name}`)
+    const resultFile = await watermarkService.addWatermark(inputPath, outputPath)
+    const uploaded = await storageService.upload(resultFile, deviceId)
+
+    // const uploaded = await storageService.upload(file, deviceId) // Upload to RustFS bucket
 
     const recording = await prisma.recording.create({
       data: {
