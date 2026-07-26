@@ -26,13 +26,12 @@ class WatermarkService {
     this.logoPath = await this.ensureLogoLocal(
       "https://ffuq0pf52dpcvo3q.public.blob.vercel-storage.com/pickleballbook-resources/pickl.digos.png",
     )
-    console.log(fs.statSync(inputPath).size)
-    console.log(fs.existsSync(this.logoPath))
     const sourceFFMPEGPath = (
       process.env.NODE_ENV === "production"
         ? ffmpegPath
         : "D:\\Development\\pickleball-booking\\node_modules\\ffmpeg-static\\ffmpeg.exe"
     ) as string
+    console.log({ sourceFFMPEGPath })
     return new Promise((resolve, reject) => {
       ffmpeg(path.resolve(inputPath))
         .setFfmpegPath(sourceFFMPEGPath)
