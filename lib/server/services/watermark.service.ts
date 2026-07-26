@@ -3,6 +3,8 @@ import ffmpegPath from "ffmpeg-static"
 import fs from "fs"
 import path from "path"
 
+export const storagePath = path.join(process.cwd(), "storage")
+
 class WatermarkService {
   private logoPath: string
 
@@ -15,7 +17,7 @@ class WatermarkService {
     if (!res.ok) throw new Error(`Failed to fetch logo: ${res.statusText}`)
 
     const buffer = await res.arrayBuffer()
-    const logoPath = path.join(process.cwd(), "tmp-logo.png")
+    const logoPath = path.join(storagePath, "tmp-logo.png")
     fs.writeFileSync(logoPath, Buffer.from(buffer))
     return logoPath
   }
@@ -35,8 +37,23 @@ class WatermarkService {
       ffmpeg(path.resolve(inputPath))
         .setFfmpegPath(sourceFFMPEGPath)
         .input(this.logoPath)
-        .complexFilter([{ filter: "overlay", options: { x: "W-w-20", y: "H-h-20" } }])
-        .outputOptions(["-c:v libx264", "-c:a aac"])
+        .complexFilter([
+          {
+            filter: "scale",
+            options: { h: "ih*0.1", w: "-1" }, // preserve aspect ratio
+            inputs: "[1:v]",
+            outputs: "logo_scaled",
+          },
+          // overlay scaled logo bottom-right
+          {
+            filter: "overlay",
+            options: { x: "main_w-overlay_w-20", y: "main_h-overlay_h-20" },
+            inputs: ["[0:v]", "logo_scaled"],
+            outputs: "out",
+          },
+        ])
+        // .outputOptions(["-c:v libx264", "-c:a aac"])
+        .outputOptions(["-map [out]", "-map 0:a?", "-c:v libx264", "-c:a aac"])
         .save(path.resolve(outputPath))
         .on("end", () => {
           const buffer = fs.readFileSync(outputPath)

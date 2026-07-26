@@ -4,6 +4,7 @@ import {
   PutObjectCommand,
   ListBucketsCommand,
   CreateBucketCommand,
+  GetObjectCommand,
 } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
@@ -108,7 +109,7 @@ class StorageService {
   /**  Generate a pre-signed URL for secure download */
   async getPresignedUrl(key: string, expiresInSeconds = 3600) {
     if (this.s3) {
-      const command = new PutObjectCommand({
+      const command = new GetObjectCommand({
         Bucket: this.bucket,
         Key: key,
       })

@@ -5,8 +5,7 @@ import { storageService } from "@/lib/server/services/storage.service"
 import { sendGameRecordingEmail } from "@/lib/nodemailer/sender/sender.email"
 import fs from "fs"
 import path from "path"
-import { watermarkService } from "@/lib/server/services/watermark.service"
-import os from "os"
+import { storagePath, watermarkService } from "@/lib/server/services/watermark.service"
 
 export const POST = withRateLimit(async (request: NextRequest) => {
   try {
@@ -27,18 +26,13 @@ export const POST = withRateLimit(async (request: NextRequest) => {
       return NextResponse.json({ error: "Device ID and file are required." }, { status: 400 })
 
     // Save uploaded file to /tmp
-    // const inputPath = path.join("/tmp", file.name)
-    const inputPath = path.join(process.cwd(), file.name)
+    const inputPath = path.join(storagePath, file.name)
     fs.writeFileSync(inputPath, Buffer.from(await file.arrayBuffer()))
 
     // Apply watermark
-    // const outputPath = path.join("/tmp", `wm-${file.name}`)
-
-    const outputPath = path.join(process.cwd(), `wm-${file.name}`)
+    const outputPath = path.join(storagePath, `wm-${file.name}`)
     const resultFile = await watermarkService.addWatermark(inputPath, outputPath)
     const uploaded = await storageService.upload(resultFile, deviceId)
-
-    // const uploaded = await storageService.upload(file, deviceId) // Upload to RustFS bucket
 
     const recording = await prisma.recording.create({
       data: {
@@ -49,15 +43,13 @@ export const POST = withRateLimit(async (request: NextRequest) => {
       },
     })
 
-    const videoUrl = ""
     // Send email with video link
-    if (emails.length && videoUrl) {
+    if (emails.length && uploaded) {
       try {
-        const sendEmail = await sendGameRecordingEmail({
+        await sendGameRecordingEmail({
           recipients: emails,
-          videoUrl,
+          videoUrl: uploaded.url,
         })
-        console.info({ sendEmail })
       } catch (error) {
         console.error("Sending game error", error)
       }

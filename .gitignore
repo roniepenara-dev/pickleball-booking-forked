@@ -48,3 +48,5 @@ next-env.d.ts
 
 .prettierrc
 package-lock.json
+
+/storage
