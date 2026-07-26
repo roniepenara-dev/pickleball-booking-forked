@@ -1,5 +1,4 @@
 import ffmpeg from "fluent-ffmpeg"
-import ffmpegPath from "ffmpeg-static"
 import fs from "fs"
 import path from "path"
 
@@ -28,7 +27,12 @@ class WatermarkService {
     )
     const sourceFFMPEGPath = (
       process.env.NODE_ENV === "production"
-        ? ffmpegPath
+        ? path.join(
+            process.cwd(),
+            "node_modules",
+            "ffmpeg-static",
+            process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg",
+          )
         : "D:\\Development\\pickleball-booking\\node_modules\\ffmpeg-static\\ffmpeg.exe"
     ) as string
     console.log({ sourceFFMPEGPath })
