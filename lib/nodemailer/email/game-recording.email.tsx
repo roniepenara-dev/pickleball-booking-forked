@@ -52,7 +52,7 @@ export const GameRecordingEmail = ({ recipients, videoUrl }: GameRecordingEmailP
         {/* Footer */}
         <Text style={{ fontSize: "12px", color: "#999", marginTop: "24px" }}>
           This link may expire after a certain period. Please save it if you’d like to keep a copy.
-          For any questions, reply directly to this email.
+          For any questions, contact as on facebook.
         </Text>
       </Container>
     </Body>
